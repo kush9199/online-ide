@@ -1,0 +1,14 @@
+input, code -> output (stdout, stderr)
+
+{
+    {
+        input
+    },
+    {
+        code
+    }
+}
+
+{
+    output
+}
