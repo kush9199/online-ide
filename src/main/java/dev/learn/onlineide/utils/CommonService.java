@@ -14,12 +14,21 @@ public class CommonService {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempPythonFile))) {
             writer.write(program.getCode());
         }
-
-        // Build the process to execute the Python file
         ProcessBuilder processBuilder = new ProcessBuilder(command, tempPythonFile.getAbsolutePath());
-        processBuilder.redirectErrorStream(true); // Redirect errors to the same output stream
+        processBuilder.redirectErrorStream(true);
 
-        // Start the process
+
+        return processBuilder.start();
+    }
+
+    public static Process getProcess(String command, Program program, File tempPythonFile, String path) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempPythonFile))) {
+            writer.write(program.getCode());
+        }
+        ProcessBuilder processBuilder = new ProcessBuilder(
+                command, tempPythonFile.getAbsolutePath(), "-o", path
+        );
+        processBuilder.redirectErrorStream(true);
         return processBuilder.start();
     }
 }
