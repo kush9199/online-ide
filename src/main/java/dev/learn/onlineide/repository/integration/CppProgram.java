@@ -9,13 +9,14 @@ import java.io.*;
 
 import static dev.learn.onlineide.utils.CommonService.getProcess;
 
+// TODO: create exception handling
 public class CppProgram implements ProgramRepository {
     @Override
     public ProgramRes execute(Program program) {
         try {
         	File tempPythonFile = File.createTempFile("tempScript", ".cpp");
             File tempExecFile = File.createTempFile("tempExec", ".exe", tempPythonFile.getParentFile());
-            Process process = getProcess("g++",  program, tempPythonFile, tempExecFile.getAbsolutePath());
+            Process process = getProcess(CONSTANT.CPP,  program, tempPythonFile, tempExecFile.getAbsolutePath());
             StringBuffer output = new StringBuffer();
 
             int exitCode = process.waitFor();
