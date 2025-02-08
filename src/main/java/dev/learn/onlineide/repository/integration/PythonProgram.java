@@ -2,15 +2,18 @@ package dev.learn.onlineide.repository.integration;
 
 import dev.learn.onlineide.domain.Program;
 import dev.learn.onlineide.dto.ProgramRes;
-import dev.learn.onlineide.repository.ProgramRepository;
+import dev.learn.onlineide.repository.ProgramFactory;
 import dev.learn.onlineide.utils.CONSTANT;
 
 import java.io.*;
+import java.util.concurrent.TimeUnit;
 
 import static dev.learn.onlineide.utils.CommonService.getProcess;
 
 // TODO: create exception handling
-public class PythonProgram implements ProgramRepository {
+public class PythonProgram implements ProgramFactory {
+    public PythonProgram() {}
+
     @Override
     public ProgramRes execute(Program program) {
         try {
@@ -20,9 +23,9 @@ public class PythonProgram implements ProgramRepository {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 reader.lines().forEach(line -> output.append(line).append(System.lineSeparator()));
             }
-
-            int exitCode = process.waitFor();
-            ProgramRes res = ProgramRes.builder().output(output.toString()).code(exitCode).build();
+            process.waitFor(5, TimeUnit.SECONDS);
+            int exitCode = process.exitValue();
+            ProgramRes res = new ProgramRes(output.toString(), exitCode);
             tempPythonFile.deleteOnExit();
             return res;
             
