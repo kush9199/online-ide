@@ -19,11 +19,22 @@ public class PythonProgram implements ProgramFactory {
         try {
            File tempPythonFile = File.createTempFile("tempScript", ".py");
             Process process = getProcess(CONSTANT.PYTHON, program, tempPythonFile);
+
+            boolean flag = process.waitFor(CONSTANT.TIMEOUT_DURATION, TimeUnit.SECONDS);
+            if(!flag) {
+                tempPythonFile.deleteOnExit();
+                process.destroy();
+                return new ProgramRes("", -1);
+            }
+
             StringBuffer output = new StringBuffer();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 reader.lines().forEach(line -> output.append(line).append(System.lineSeparator()));
+            } catch (Exception e) {
+                // response banake bhejna h bhar
+                e.printStackTrace();
             }
-            process.waitFor(5, TimeUnit.SECONDS);
+
             int exitCode = process.exitValue();
             ProgramRes res = new ProgramRes(output.toString(), exitCode);
             tempPythonFile.deleteOnExit();

@@ -5,4 +5,5 @@ public interface CONSTANT {
     String JAVA = "java";
     String PYTHON = "python";
     String CPP = "g++";
+    int TIMEOUT_DURATION = 5;
 }

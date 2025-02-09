@@ -9,6 +9,7 @@ import dev.learn.onlineide.utils.CONSTANT;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
+import java.util.concurrent.TimeUnit;
 
 import static dev.learn.onlineide.utils.CommonService.getProcess;
 
@@ -20,12 +21,19 @@ public class CppProgram implements ProgramFactory {
     public ProgramRes execute(Program program) {
         System.out.println("CppProgram.execute");
         try {
-        	File tempPythonFile = File.createTempFile("tempScript", ".cpp");
-            File tempExecFile = File.createTempFile("tempExec", ".exe", tempPythonFile.getParentFile());
-            Process process = getProcess(CONSTANT.CPP,  program, tempPythonFile, tempExecFile.getAbsolutePath());
+        	File cppTempFile = File.createTempFile("tempFile", ".cpp");
+            File tempExecFile = File.createTempFile("tempExec", ".exe", cppTempFile.getParentFile());
+            Process process = getProcess(CONSTANT.CPP,  program, cppTempFile, tempExecFile.getAbsolutePath());
+            boolean flag = process.waitFor(CONSTANT.TIMEOUT_DURATION, TimeUnit.SECONDS);
+            if(!flag) {
+                cppTempFile.deleteOnExit();
+                tempExecFile.deleteOnExit();
+                process.destroy();
+                return new ProgramRes("", -1);
+            }
             StringBuffer output = new StringBuffer();
 
-            int exitCode = process.waitFor();
+            int exitCode = process.exitValue();
             ProcessBuilder pb2 = new ProcessBuilder(tempExecFile.getAbsolutePath());
             pb2.redirectErrorStream(true);
             Process process2 = pb2.start();
@@ -35,10 +43,9 @@ public class CppProgram implements ProgramFactory {
             }
             ProgramRes resp = new ProgramRes();
 
-            tempPythonFile.deleteOnExit();
+            cppTempFile.deleteOnExit();
             tempExecFile.deleteOnExit();
             return resp;
-
         } catch (Exception e) {
             // custom exception web wali
             e.printStackTrace();

@@ -8,6 +8,7 @@ import dev.learn.onlineide.utils.CONSTANT;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.util.concurrent.TimeUnit;
 
 import static dev.learn.onlineide.utils.CommonService.getProcess;
 
@@ -19,8 +20,16 @@ public class JavaProgram implements ProgramFactory {
     @Override
     public ProgramRes execute(Program program) {
         try {
-            File tempPythonFile = File.createTempFile("tempScript", ".java");
-            Process process = getProcess(CONSTANT.JAVA, program, tempPythonFile);
+            File tempJavaFile = File.createTempFile("tempScript", ".java");
+            Process process = getProcess(CONSTANT.JAVA, program, tempJavaFile);
+
+            boolean flag = process.waitFor(CONSTANT.TIMEOUT_DURATION, TimeUnit.SECONDS);
+            if(!flag) {
+                tempJavaFile.deleteOnExit();
+                process.destroy();
+                return new ProgramRes("", -1);
+            }
+
             StringBuffer output = new StringBuffer();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 reader.lines().forEach(line -> output.append(line).append(System.lineSeparator()));
@@ -28,9 +37,8 @@ public class JavaProgram implements ProgramFactory {
 
             int exitCode = process.waitFor();
             ProgramRes res = new ProgramRes();
-            tempPythonFile.deleteOnExit();
+            tempJavaFile.deleteOnExit();
             return res;
-
         } catch (Exception e) {
             // custom exception web wali
             e.printStackTrace();
